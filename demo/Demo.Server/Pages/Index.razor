@@ -1,0 +1,120 @@
+﻿@page "/"
+@using System.Linq
+@using Demo.Server.Data
+
+<span>Simple string example</span>
+<Select2 TItem="string"
+         Id="simple-string-example"
+         Data="@SimpleStringList"
+         @bind-Value="@ValueSelected">
+</Select2>
+<span>Currently selected value: @ValueSelected</span> 
+<br/>
+<span>Simple string example with html template</span>
+<Select2 TItem="string"
+         Id="simple-string-example-with-html"
+         Data="@SimpleStringList"
+         @bind-Value="@ValueSelected"
+         OptionTemplate="@(item =>
+                             "<div class=\"row\">"
+                                 + "<div class=\"col-1\">"
+                                    + "<img style=\"height: 20px; width:20px\" src=\"https://cdn.imgbin.com/18/19/14/imgbin-grumpy-cat-internet-meme-cat-Lm3mqGypjtd71yWgUUkfyrSDb.jpg\" />"
+                                + "</div>"
+                                 + "<div class=\"col\">"
+                                    + $"{item}"
+                                 + "</div>"
+                            + "</div>")">
+</Select2>
+<span>Currently selected value: @ValueSelected</span>
+<div>
+    <button @onclick="@(() => { ValueSelected = "Foo"; })">Set Foo</button>
+</div>
+
+<span>Without edit context with complex object</span>
+<Select2 TItem="SomeInnerObject"
+         Id="without-edit-context-inner-obj-example"
+         Data="@InnerObjectList"
+         @bind-Value="@FakeObject.Inner"
+         TextExpression="@(item => item.InnerName)">
+</Select2>
+<br/>
+<span>With provided edit context with complex object</span>
+<Select2 @ref="@ProvidedSelect2Ref" TItem="SomeInnerObject"
+         Id="provided-edit-context-inner-obj-example"
+         Data="@InnerObjectList"
+         @bind-Value="@FakeObject.Inner"
+         TextExpression="@(item => item.InnerName)"
+         EditContext="@EditContext"
+         IsOptionDisabled="@(item => item != FooObject)">
+</Select2>
+<br/>
+<span>With provided edit context with complex object, with value expression and value changed events</span>
+<Select2 @ref="@ProvidedSelect2Ref" TItem="SomeInnerObject"
+         Id="provided-edit-context-inner-obj-example-value-expr"
+         Data="@InnerObjectList"
+         ValueExpression="@(() => FakeObject.Inner)"
+         ValueChanged="@(item => FakeObject.Inner = item)"
+         TextExpression="@(item => item.InnerName)"
+         EditContext="@EditContext">
+</Select2>
+<br/>
+<span>With cascading edit context with complex object</span>
+<CascadingValue Value="EditContext">
+    <Select2 TItem="SomeInnerObject"
+             Id="cascading-edit-context-inner-obj-example"
+             Data="@InnerObjectList"
+             @bind-Value="@FakeObject.Inner"
+             TextExpression="@(item => item.InnerName)">
+    </Select2>
+</CascadingValue>
+<br/>
+<span>Without edit context with complex object and GetPagedData</span>
+<Select2 @ref="@ProvidedSelect2Ref" TItem="SomeInnerObject"
+         Id="get-paged-data-inner-obj-example"
+         GetPagedData="@(query => Task.FromResult(
+                            InnerObjectList
+                                .Where(x => string.IsNullOrWhiteSpace(query.Term) || x.InnerName.Contains(query.Term, StringComparison.OrdinalIgnoreCase))
+                                .Skip((query.Page - 1) * query.Size)
+                                .Take(query.Size)
+                                .ToList()))"
+         @bind-Value="@FakeObject.Inner"
+         TextExpression="@(item => item.InnerName)"
+         EditContext="@EditContext">
+</Select2>
+
+<br/>
+<span>Currently selected Inner value: @(FakeObject.Inner?.InnerName)</span>
+
+<div>
+    <button @onclick="@(() => EditContext.Validate())">Validate</button>
+    <button @onclick="@(() => { FakeObject.Inner = FooObject; })">Set inner name</button>
+</div>
+
+@code
+{
+    private EditContext EditContext { get; set; }
+    private Select2<SomeInnerObject> ProvidedSelect2Ref { get; set; }
+    public SomeObject FakeObject { get; set; } = new SomeObject { SomeName = "Name" };
+    private List<string> SimpleStringList { get; set; } = new List<string>();
+    private List<SomeInnerObject> InnerObjectList { get; set; }
+    private string ValueSelected { get; set; }
+
+    private SomeInnerObject FooObject = new SomeInnerObject { InnerName = "Inner Foo" };
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+        if (firstRender)
+        {
+            SimpleStringList.Add("Foo");
+            SimpleStringList.Add("Bar");
+            SimpleStringList.Add("Baz");
+
+            InnerObjectList = new List<SomeInnerObject> { FooObject, new SomeInnerObject { InnerName = "Inner bar" } };
+            for (var i = 0; i < 100; i++)
+                InnerObjectList.Add(new SomeInnerObject { InnerName = $"Inner bar{i}" });
+            EditContext = new EditContext(FakeObject).AddDataAnnotationsValidation();
+            StateHasChanged();
+        }
+    }
+}

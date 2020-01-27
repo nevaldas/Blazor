@@ -1,0 +1,11 @@
+﻿@typeparam TItem
+@inherits Select2Base<TItem>
+
+<div class="@FieldClass">
+    <select id="@Id" disabled="@IsDisabled">
+        @if (Placeholder != null)
+        {
+            <option></option>
+        }
+    </select>
+</div>

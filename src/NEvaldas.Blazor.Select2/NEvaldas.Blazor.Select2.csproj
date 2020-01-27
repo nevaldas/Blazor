@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <RazorLangVersion>3.0</RazorLangVersion>
+    <ApplicationIcon />
+    <OutputType>Library</OutputType>
+    <StartupObject />
+    <PackageId>NEvaldas.Blazor.Select2</PackageId>
+    <Authors>Evaldas</Authors>
+    <Product>NEvaldas.Blazor.Select2</Product>
+    <AssemblyName>NEvaldas.Blazor.Select2</AssemblyName>
+    <RootNamespace>NEvaldas.Blazor.Select2</RootNamespace>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Blazor" Version="3.1.0-preview4.19579.2" />
+  </ItemGroup>
+
+</Project>
