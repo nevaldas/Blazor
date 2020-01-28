@@ -1,0 +1,2 @@
+cd /d "%~dp0"
+"%ProgramFiles(x86)%\\Microsoft Visual Studio\2019\Professional\MSBuild\Current\Bin\MSBuild.exe" ../src/NEvaldas.Blazor.Select2/NEvaldas.Blazor.Select2.csproj /p:Configuration=Release  /t:Restore;Rebuild /v:m

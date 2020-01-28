@@ -1,0 +1,27 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<Version>0.1.0.0</Version>
+		<PackageVersion>0.1.0.0</PackageVersion>
+
+		<Description>Provides Select2 component for Blazor. Supports static data or paged data. Supports data validation if edit context provided.</Description>
+		<Authors>Evaldas Naujikas</Authors>
+		<Copyright>Copyright 2020 Evaldas Naujikas</Copyright>
+		<RepositoryUrl>https://github.com/nevaldas/Blazor</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<OutputType>Library</OutputType>
+		<IsPackable>true</IsPackable>
+		<LangVersion>8.0</LangVersion>
+
+		<GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+		
+		<RazorLangVersion>3.0</RazorLangVersion>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components" Version="3.1.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="3.1.1" />
+	</ItemGroup>
+</Project>

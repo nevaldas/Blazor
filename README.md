@@ -1,11 +1,18 @@
-For starters, added Select2 component which supports API (or service) calls.
+Select2 component which supports API (or service) calls.
 
-For usage, add to `index.html` (or `_Host.cshtml` for Server-Side)
+# Installation
+Add javascript into `index.html` (or `_Host.cshtml` for Server-Side)
 ```html
 <script src="_content/NEvaldas.Blazor.Select2/select2.blazor.js"></script>
 ```
+Then add using to `_Imports.razor`
+```html
+@using NEvaldas.Blazor.Select2
+```
 
-For instance, if simple Select2 usage is needed:
+# Usage
+
+If simple Select2 usage is needed:
 ```html
 <Select2 TItem="string"
          Id="simple-string-example"
