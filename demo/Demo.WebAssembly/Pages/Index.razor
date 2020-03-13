@@ -8,8 +8,8 @@
          Data="@SimpleStringList"
          @bind-Value="@ValueSelected">
 </Select2>
-<span>Currently selected value: @ValueSelected</span> 
-<br/>
+<span>Currently selected value: @ValueSelected</span>
+<br />
 <span>Simple string example with html template</span>
 <Select2 TItem="string"
          Id="simple-string-example-with-html"
@@ -37,7 +37,7 @@
          @bind-Value="@FakeObject.Inner"
          TextExpression="@(item => item.InnerName)">
 </Select2>
-<br/>
+<br />
 <span>With provided edit context with complex object</span>
 <Select2 @ref="@ProvidedSelect2Ref" TItem="SomeInnerObject"
          Id="provided-edit-context-inner-obj-example"
@@ -47,7 +47,7 @@
          EditContext="@EditContext"
          IsOptionDisabled="@(item => item != FooObject)">
 </Select2>
-<br/>
+<br />
 <span>With provided edit context with complex object, with value expression and value changed events</span>
 <Select2 @ref="@ProvidedSelect2Ref" TItem="SomeInnerObject"
          Id="provided-edit-context-inner-obj-example-value-expr"
@@ -57,7 +57,7 @@
          TextExpression="@(item => item.InnerName)"
          EditContext="@EditContext">
 </Select2>
-<br/>
+<br />
 <span>With cascading edit context with complex object</span>
 <CascadingValue Value="EditContext">
     <Select2 TItem="SomeInnerObject"
@@ -67,7 +67,7 @@
              TextExpression="@(item => item.InnerName)">
     </Select2>
 </CascadingValue>
-<br/>
+<br />
 <span>Without edit context with complex object and GetPagedData</span>
 <Select2 @ref="@ProvidedSelect2Ref" TItem="SomeInnerObject"
          Id="get-paged-data-inner-obj-example"
@@ -82,13 +82,65 @@
          EditContext="@EditContext">
 </Select2>
 
-<br/>
+<br />
 <span>Currently selected Inner value: @(FakeObject.Inner?.InnerName)</span>
 
 <div>
     <button @onclick="@(() => EditContext.Validate())">Validate</button>
     <button @onclick="@(() => { FakeObject.Inner = FooObject; })">Set inner name</button>
 </div>
+
+<hr />
+<span>Simple themed string example</span>
+<Select2 TItem="string"
+         Id="simple-theme-example-1"
+         Data="@SimpleStringList"
+         @bind-Value="@ValueSelected"
+         Theme="bootstrap"
+         Width="100%">
+</Select2>
+<span>Currently selected value: @ValueSelected</span>
+<br />
+<span>Simple themed string example no search box</span>
+<Select2 TItem="string"
+         Id="simple-theme-example-2"
+         Data="@SimpleStringList"
+         @bind-Value="@ValueSelected"
+         Theme="bootstrap"
+         MinimumResultsForSearch="-1">
+</Select2>
+<span>Currently selected value: @ValueSelected</span>
+<br />
+<span>Simple themed string example min results, top should show, bottom not</span>
+<Select2 TItem="string"
+         Id="simple-theme-example-3"
+         Data="@SimpleStringList"
+         @bind-Value="@ValueSelected"
+         Theme="bootstrap"
+         MinimumResultsForSearch="1">
+</Select2>
+<Select2 TItem="string"
+         Id="simple-theme-example-4"
+         Data="@SimpleStringList"
+         @bind-Value="@ValueSelected"
+         Theme="bootstrap"
+         MinimumResultsForSearch="5">
+</Select2>
+<span>Currently selected value: @ValueSelected</span>
+<br />
+<span>Simple themed string example with custom drop and container classes</span>
+<br />
+<b>NOTE: This requires the full version of select2 (select2.full.min.js) uncomment _Host.cshtml and below</b>
+@*<Select2 TItem="string"
+             Id="simple-theme-example-5"
+             Data="@SimpleStringList"
+             @bind-Value="@ValueSelected"
+             Theme="bootstrap"
+             ContainerCssClass="dropdown-container"
+             DropdownCssClass="dropdown-drop">
+    </Select2>*@
+<br />
+<span>Currently selected value: @ValueSelected</span>
 
 @code
 {
