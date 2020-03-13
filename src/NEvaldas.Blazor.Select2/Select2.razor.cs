@@ -11,280 +11,291 @@ using NEvaldas.Blazor.Select2.Models;
 
 namespace NEvaldas.Blazor.Select2
 {
-    public class Select2Base<TItem> : ComponentBase, IDisposable
-    {
-        private readonly EventHandler<ValidationStateChangedEventArgs> _validationStateChangedHandler;
-        private readonly JsonSerializerOptions _jsonSerializerOptions =
-            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+	public class Select2Base<TItem> : ComponentBase, IDisposable
+	{
+		private readonly EventHandler<ValidationStateChangedEventArgs> _validationStateChangedHandler;
+		private readonly JsonSerializerOptions _jsonSerializerOptions =
+			new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
-        [Inject] private IJSRuntime JSRuntime { get; set; }
-        private DotNetObjectReference<Select2Base<TItem>> _elementRef;
-        private bool _previousParsingAttemptFailed;
-        private ValidationMessageStore _parsingValidationMessages;
-        private Type _nullableUnderlyingType;
+		[Inject] private IJSRuntime JSRuntime { get; set; }
+		private DotNetObjectReference<Select2Base<TItem>> _elementRef;
+		private bool _previousParsingAttemptFailed;
+		private ValidationMessageStore _parsingValidationMessages;
+		private Type _nullableUnderlyingType;
 
-        [CascadingParameter] public EditContext CascadingEditContext { get; set; }
+		[CascadingParameter] public EditContext CascadingEditContext { get; set; }
 
-        [Parameter] public EditContext EditContext { get; set; }
+		[Parameter] public EditContext EditContext { get; set; }
 
-        [Parameter] public string Id { get; set; }
+		[Parameter] public string Id { get; set; }
 
-        [Parameter] public bool IsDisabled { get; set; }
+		[Parameter] public bool IsDisabled { get; set; }
 
-        [Parameter] public Func<TItem, bool> IsOptionDisabled { get; set; } = item => false;
+		[Parameter] public Func<TItem, bool> IsOptionDisabled { get; set; } = item => false;
 
-        [Parameter] public List<TItem> Data { get; set; }
+		[Parameter] public List<TItem> Data { get; set; }
 
-        [Parameter] public Func<Select2QueryData, Task<List<TItem>>> GetPagedData { get; set; }
+		[Parameter] public Func<Select2QueryData, Task<List<TItem>>> GetPagedData { get; set; }
 
-        [Parameter] public Func<TItem, string> OptionTemplate { get; set; }
+		[Parameter] public Func<TItem, string> OptionTemplate { get; set; }
 
-        [Parameter] public Func<TItem, string> TextExpression { get; set; } = item => item.ToString();
+		[Parameter] public Func<TItem, string> TextExpression { get; set; } = item => item.ToString();
 
-        [Parameter] public string Placeholder { get; set; } = "Select value";
+		[Parameter] public string Placeholder { get; set; } = "Select value";
 
-        [Parameter] public bool AllowClear { get; set; }
-        /// <summary>
-        /// Gets or sets an expression that identifies the bound value.
-        /// </summary>
-        [Parameter] public Expression<Func<TItem>> ValueExpression { get; set; }
+		[Parameter] public bool AllowClear { get; set; }
 
-        /// <summary>
-        /// Gets or sets the value of the input. This should be used with two-way binding.
-        /// </summary>
-        /// <example>
-        /// @bind-Value="model.PropertyName"
-        /// </example>
-        [Parameter]
-        public TItem Value { get; set; }
+		[Parameter] public int MinimumResultsForSearch { get; set; }
+		[Parameter] public string Width { get; set; } = "resolve";
+		[Parameter] public string ContainerCssClass { get; set; }
+		[Parameter] public string DropdownCssClass { get; set; }
+		[Parameter] public string Theme { get; set; } = "default";
 
-        /// <summary>
-        /// Gets or sets a callback that updates the bound value.
-        /// </summary>
-        [Parameter] public EventCallback<TItem> ValueChanged { get; set; }
+		/// <summary>
+		/// Gets or sets an expression that identifies the bound value.
+		/// </summary>
+		[Parameter] public Expression<Func<TItem>> ValueExpression { get; set; }
 
-        public void Refresh()
-        {
-            StateHasChanged();
-        }
+		/// <summary>
+		/// Gets or sets the value of the input. This should be used with two-way binding.
+		/// </summary>
+		/// <example>
+		/// @bind-Value="model.PropertyName"
+		/// </example>
+		[Parameter]
+		public TItem Value { get; set; }
 
-        /// <summary>
-        /// Constructs an instance of <see cref="Select2Base{TItem}"/>.
-        /// </summary>
-        protected Select2Base()
-        {
-            _validationStateChangedHandler = (sender, eventArgs) => StateHasChanged();
-        }
+		/// <summary>
+		/// Gets or sets a callback that updates the bound value.
+		/// </summary>
+		[Parameter] public EventCallback<TItem> ValueChanged { get; set; }
 
-        protected Dictionary<string, TItem> InternallyMappedData { get; set; } = new Dictionary<string, TItem>();
+		public void Refresh()
+		{
+			StateHasChanged();
+		}
 
-        protected string FieldClass => GivenEditContext?.FieldCssClass(FieldIdentifier) ?? string.Empty;
+		/// <summary>
+		/// Constructs an instance of <see cref="Select2Base{TItem}"/>.
+		/// </summary>
+		protected Select2Base()
+		{
+			_validationStateChangedHandler = (sender, eventArgs) => StateHasChanged();
+		}
 
-        protected EditContext GivenEditContext { get; set; }
+		protected Dictionary<string, TItem> InternallyMappedData { get; set; } = new Dictionary<string, TItem>();
 
-        /// <summary>
-        /// Gets the <see cref="FieldIdentifier"/> for the bound value.
-        /// </summary>
-        protected FieldIdentifier FieldIdentifier { get; set; }
+		protected string FieldClass => GivenEditContext?.FieldCssClass(FieldIdentifier) ?? string.Empty;
 
-        /// <summary>
-        /// Gets or sets the current value of the input.
-        /// </summary>
-        protected TItem CurrentValue
-        {
-            get => Value;
-            set
-            {
-                _ = SelectItem(value);
+		protected EditContext GivenEditContext { get; set; }
 
-                var hasChanged = !EqualityComparer<TItem>.Default.Equals(value, Value);
-                if (!hasChanged) return;
+		/// <summary>
+		/// Gets the <see cref="FieldIdentifier"/> for the bound value.
+		/// </summary>
+		protected FieldIdentifier FieldIdentifier { get; set; }
 
-                Value = value;
-                _ = ValueChanged.InvokeAsync(value);
-                GivenEditContext?.NotifyFieldChanged(FieldIdentifier);
-            }
-        }
+		/// <summary>
+		/// Gets or sets the current value of the input.
+		/// </summary>
+		protected TItem CurrentValue
+		{
+			get => Value;
+			set
+			{
+				_ = SelectItem(value);
 
-        protected bool TryParseValueFromString(string value, out TItem result)
-        {
-            result = default;
+				var hasChanged = !EqualityComparer<TItem>.Default.Equals(value, Value);
+				if (!hasChanged) return;
 
-            if (value == "null" || string.IsNullOrEmpty(value))
-                return AllowClear;
+				Value = value;
+				_ = ValueChanged.InvokeAsync(value);
+				GivenEditContext?.NotifyFieldChanged(FieldIdentifier);
+			}
+		}
 
-            if (!InternallyMappedData.ContainsKey(value))
-                return false;
+		protected bool TryParseValueFromString(string value, out TItem result)
+		{
+			result = default;
 
-            result = InternallyMappedData[value];
-            return true;
-        }
+			if (value == "null" || string.IsNullOrEmpty(value))
+				return AllowClear;
 
-        protected override async Task OnInitializedAsync()
-        {
-            await base.OnInitializedAsync();
-            _elementRef = DotNetObjectReference.Create(this);
-        }
+			if (!InternallyMappedData.ContainsKey(value))
+				return false;
 
-        public override Task SetParametersAsync(ParameterView parameters)
-        {
-            parameters.SetParameterProperties(this);
+			result = InternallyMappedData[value];
+			return true;
+		}
 
-            FieldIdentifier = FieldIdentifier.Create(ValueExpression);
-            _nullableUnderlyingType = Nullable.GetUnderlyingType(typeof(TItem));
-            GivenEditContext = EditContext ?? CascadingEditContext;
-            if (GivenEditContext != null)
-                GivenEditContext.OnValidationStateChanged += _validationStateChangedHandler;
+		protected override async Task OnInitializedAsync()
+		{
+			await base.OnInitializedAsync();
+			_elementRef = DotNetObjectReference.Create(this);
+		}
 
-            GetPagedData ??= GetStaticData;
+		public override Task SetParametersAsync(ParameterView parameters)
+		{
+			parameters.SetParameterProperties(this);
 
-            CurrentValue = ValueExpression.Compile().Invoke();
+			FieldIdentifier = FieldIdentifier.Create(ValueExpression);
+			_nullableUnderlyingType = Nullable.GetUnderlyingType(typeof(TItem));
+			GivenEditContext = EditContext ?? CascadingEditContext;
+			if (GivenEditContext != null)
+				GivenEditContext.OnValidationStateChanged += _validationStateChangedHandler;
 
-            // For derived components, retain the usual lifecycle with OnInit/OnParametersSet/etc.
-            return base.SetParametersAsync(ParameterView.Empty);
-        }
+			GetPagedData ??= GetStaticData;
 
-        protected override async Task OnAfterRenderAsync(bool firstRender)
-        {
-            await base.OnAfterRenderAsync(firstRender);
+			CurrentValue = ValueExpression.Compile().Invoke();
 
-            if (firstRender)
-            {
-                var options = JsonSerializer.Serialize(new
-                {
-                    placeholder = Placeholder,
-                    allowClear = AllowClear,
-                    //theme = "bootstrap" // TODO
-                }, _jsonSerializerOptions);
+			// For derived components, retain the usual lifecycle with OnInit/OnParametersSet/etc.
+			return base.SetParametersAsync(ParameterView.Empty);
+		}
 
-                await JSRuntime.InvokeVoidAsync("select2Blazor.init",
-                    Id, _elementRef, options, "select2Blazor_GetData");
+		protected override async Task OnAfterRenderAsync(bool firstRender)
+		{
+			await base.OnAfterRenderAsync(firstRender);
 
-                if (CurrentValue != null)
-                    await SelectItem(CurrentValue);
+			if (firstRender)
+			{
+				var options = JsonSerializer.Serialize(new
+				{
+					placeholder = Placeholder,
+					allowClear = AllowClear,
+					theme = Theme,
+					width = Width,
+					minimumResultsForSearch = MinimumResultsForSearch,
+					containerCssClass = ContainerCssClass,
+					dropdownCssClass = DropdownCssClass
+				}, _jsonSerializerOptions);
 
-                await JSRuntime.InvokeVoidAsync("select2Blazor.onChange",
-                    Id, _elementRef, "select2Blazor_OnChange");
-            }
-        }
+				await JSRuntime.InvokeVoidAsync("select2Blazor.init",
+					Id, _elementRef, options, "select2Blazor_GetData");
 
-        private Task<List<TItem>> GetStaticData(Select2QueryData query)
-        {
-            if (query.Page != 1) 
-                return Task.FromResult(default(List<TItem>));
+				if (CurrentValue != null)
+					await SelectItem(CurrentValue);
 
-            var data = Data;
-            var searchTerm = query.Term;
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                data = data
-                    .Where(x => TextExpression(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                    .ToList();
-            }
-            return Task.FromResult(data);
-        }
+				await JSRuntime.InvokeVoidAsync("select2Blazor.onChange",
+					Id, _elementRef, "select2Blazor_OnChange");
+			}
+		}
 
-        private async Task SelectItem(TItem item)
-        {
-            var mappedItem = MapToSelect2Item(item);
-            InternallyMappedData[mappedItem.Id] = item;
-            await JSRuntime.InvokeVoidAsync("select2Blazor.select", Id, mappedItem);
-        }
+		private Task<List<TItem>> GetStaticData(Select2QueryData query)
+		{
+			if (query.Page != 1)
+				return Task.FromResult(default(List<TItem>));
 
-        internal Select2Item MapToSelect2Item(TItem item)
-        {
-            var id = GetId(item);
-            var select2Item = new Select2Item(id, TextExpression(item), IsOptionDisabled(item));
-            if (OptionTemplate != null)
-                select2Item.Html = OptionTemplate(item);
-            if (Value != null)
-                select2Item.Selected = GetId(Value) == id;
-            return select2Item;
-        }
+			var data = Data;
+			var searchTerm = query.Term;
+			if (!string.IsNullOrWhiteSpace(searchTerm))
+			{
+				data = data
+					.Where(x => TextExpression(x).Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+					.ToList();
+			}
+			return Task.FromResult(data);
+		}
 
-        [JSInvokable("select2Blazor_GetData")]
-        public async Task<string> Select2_GetDataWrapper(JsonElement element)
-        {
-            var json = element.GetRawText();
-            var queryParams = JsonSerializer.Deserialize<Select2QueryParams>(json, _jsonSerializerOptions);
+		private async Task SelectItem(TItem item)
+		{
+			var mappedItem = MapToSelect2Item(item);
+			InternallyMappedData[mappedItem.Id] = item;
+			await JSRuntime.InvokeVoidAsync("select2Blazor.select", Id, mappedItem);
+		}
 
-            var data = await GetPagedData(queryParams.Data);
+		internal Select2Item MapToSelect2Item(TItem item)
+		{
+			var id = GetId(item);
+			var select2Item = new Select2Item(id, TextExpression(item), IsOptionDisabled(item));
+			if (OptionTemplate != null)
+				select2Item.Html = OptionTemplate(item);
+			if (Value != null)
+				select2Item.Selected = GetId(Value) == id;
+			return select2Item;
+		}
 
-            if (!queryParams.Data.Type.Contains("append", StringComparison.OrdinalIgnoreCase))
-                InternallyMappedData.Clear();
+		[JSInvokable("select2Blazor_GetData")]
+		public async Task<string> Select2_GetDataWrapper(JsonElement element)
+		{
+			var json = element.GetRawText();
+			var queryParams = JsonSerializer.Deserialize<Select2QueryParams>(json, _jsonSerializerOptions);
 
-            var response = new Select2Response();
-            if (data != null)
-            {
-                foreach (var item in data)
-                {
-                    var mappedItem = MapToSelect2Item(item);
-                    InternallyMappedData[mappedItem.Id] = item;
-                    response.Results.Add(mappedItem);
-                }
-                response.Pagination.More = data.Count == queryParams.Data.Size;
-            }
+			var data = await GetPagedData(queryParams.Data);
 
-            return JsonSerializer.Serialize(response, _jsonSerializerOptions);
-        }
+			if (!queryParams.Data.Type.Contains("append", StringComparison.OrdinalIgnoreCase))
+				InternallyMappedData.Clear();
 
-        [JSInvokable("select2Blazor_OnChange")]
-        public void Change(string value)
-        {
-            _parsingValidationMessages?.Clear();
+			var response = new Select2Response();
+			if (data != null)
+			{
+				foreach (var item in data)
+				{
+					var mappedItem = MapToSelect2Item(item);
+					InternallyMappedData[mappedItem.Id] = item;
+					response.Results.Add(mappedItem);
+				}
+				response.Pagination.More = data.Count == queryParams.Data.Size;
+			}
 
-            bool parsingFailed;
+			return JsonSerializer.Serialize(response, _jsonSerializerOptions);
+		}
 
-            if (_nullableUnderlyingType != null && string.IsNullOrEmpty(value))
-            {
-                // Assume if it's a nullable type, null/empty inputs should correspond to default(T)
-                // Then all subclasses get nullable support almost automatically (they just have to
-                // not reject Nullable<T> based on the type itself).
-                parsingFailed = false;
-                CurrentValue = default;
-            }
-            else if (TryParseValueFromString(value, out var parsedValue))
-            {
-                parsingFailed = false;
-                CurrentValue = parsedValue;
-            }
-            else
-            {
-                parsingFailed = true;
+		[JSInvokable("select2Blazor_OnChange")]
+		public void Change(string value)
+		{
+			_parsingValidationMessages?.Clear();
 
-                if (_parsingValidationMessages == null)
-                {
-                    _parsingValidationMessages = new ValidationMessageStore(GivenEditContext);
-                }
+			bool parsingFailed;
 
-                _parsingValidationMessages.Add(FieldIdentifier, "Given value was not found");
+			if (_nullableUnderlyingType != null && string.IsNullOrEmpty(value))
+			{
+				// Assume if it's a nullable type, null/empty inputs should correspond to default(T)
+				// Then all subclasses get nullable support almost automatically (they just have to
+				// not reject Nullable<T> based on the type itself).
+				parsingFailed = false;
+				CurrentValue = default;
+			}
+			else if (TryParseValueFromString(value, out var parsedValue))
+			{
+				parsingFailed = false;
+				CurrentValue = parsedValue;
+			}
+			else
+			{
+				parsingFailed = true;
 
-                // Since we're not writing to CurrentValue, we'll need to notify about modification from here
-                GivenEditContext?.NotifyFieldChanged(FieldIdentifier);
-            }
+				if (_parsingValidationMessages == null)
+				{
+					_parsingValidationMessages = new ValidationMessageStore(GivenEditContext);
+				}
 
-            // We can skip the validation notification if we were previously valid and still are
-            if (parsingFailed || _previousParsingAttemptFailed)
-            {
-                GivenEditContext?.NotifyValidationStateChanged();
-                _previousParsingAttemptFailed = parsingFailed;
-            }
-        }
+				_parsingValidationMessages.Add(FieldIdentifier, "Given value was not found");
 
-        private static string GetId(TItem item) => item.GetHashCode().ToString();
+				// Since we're not writing to CurrentValue, we'll need to notify about modification from here
+				GivenEditContext?.NotifyFieldChanged(FieldIdentifier);
+			}
 
-        protected virtual void Dispose(bool disposing)
-        {
-        }
+			// We can skip the validation notification if we were previously valid and still are
+			if (parsingFailed || _previousParsingAttemptFailed)
+			{
+				GivenEditContext?.NotifyValidationStateChanged();
+				_previousParsingAttemptFailed = parsingFailed;
+			}
+		}
 
-        void IDisposable.Dispose()
-        {
-            if (GivenEditContext != null)
-            {
-                GivenEditContext.OnValidationStateChanged -= _validationStateChangedHandler;
-            }
+		private static string GetId(TItem item) => item.GetHashCode().ToString();
 
-            Dispose(disposing: true);
-        }
-    }
+		protected virtual void Dispose(bool disposing)
+		{
+		}
+
+		void IDisposable.Dispose()
+		{
+			if (GivenEditContext != null)
+			{
+				GivenEditContext.OnValidationStateChanged -= _validationStateChangedHandler;
+			}
+
+			Dispose(disposing: true);
+		}
+	}
 }
