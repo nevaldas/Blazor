@@ -1,5 +1,5 @@
 .select2 {
-    width: 150px !important;
+    min-width: 150px;
 }
 
 .invalid .select2-selection {
@@ -7,6 +7,14 @@
 }
 .valid.modified .select2-selection {
     border-color: green !important;
+}
+
+.dropdown-container {
+    background-color: burlywood !important;
+}
+
+.dropdown-drop {
+    background-color: beige !important;
 }
 
 @import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
