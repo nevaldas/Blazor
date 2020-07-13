@@ -43,6 +43,8 @@ namespace NEvaldas.Blazor.Select2
 
         [Parameter] public string Placeholder { get; set; } = "Select value";
 
+        [Parameter] public string Theme { get; set; } = "bootstrap";
+
         [Parameter] public bool AllowClear { get; set; }
         /// <summary>
         /// Gets or sets an expression that identifies the bound value.
@@ -154,7 +156,7 @@ namespace NEvaldas.Blazor.Select2
                 {
                     placeholder = Placeholder,
                     allowClear = AllowClear,
-                    //theme = "bootstrap" // TODO
+                    theme = Theme
                 }, _jsonSerializerOptions);
 
                 await JSRuntime.InvokeVoidAsync("select2Blazor.init",
